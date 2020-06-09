@@ -6,29 +6,38 @@ import codecs
 import requests
 from lxml import etree
 
-class PGH(object):
+# 定义爬虫类
+class PGH:
     def __init__(self, page):
+        '''
+        初始化类
+        '''
+        # 起始URL
         self.url = 'http://sz.xiaozhu.com/search-duanzufang-p{}-0/'.format(page)
         self.headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
                                       'AppleWebKit/537.36 (KHTML, like Gecko) '
                                       'Chrome/76.0.3809.100 Safari/537.36'
                         }
-
+    
+    # 网页请求
     def get_html(self, url):
         res = requests.get(self.url, headers=self.headers).text
         return res
-
+    
+    # 数据解析
     def get_hotel(self, res):
         html = etree.HTML(res)
-        hotel = html.xpath('//*[@id="page_list"]/ul/li')
+        hotel = html.xpath('//*[@id="page_list"]/ul/li')   # 这一步获取的是包含所有租房信息的大标签
         time.sleep(1)
         return hotel
-
+    
+    # 写入文件呢
     def writer_in_file(self, hotel):
         with open('house2.csv', 'ab+')as fp:
             fp.write(codecs.BOM_UTF8)
         fp = open('house2.csv', 'a+', newline='', encoding='utf-8')
         writer = csv.writer(fp)
+        # 分别从全部租房信息中取出相应内容
         for i in hotel:
             title = i.xpath('./div[2]/div[2]/a/span/text()')[0]
             price = i.xpath('./div[2]/div[1]/span/i/text()')[0]
@@ -36,7 +45,7 @@ class PGH(object):
             writer.writerow([title, price, describe])
 
     def run(self):
-        res = self.get_html(self.url)
+        res = self.get_html(url)
         hotel = self.get_hotel(res)
         self.writer_in_file(hotel)
 
